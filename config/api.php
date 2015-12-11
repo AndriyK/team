@@ -11,6 +11,7 @@ $config = [
     'bootstrap' => ['log'],
     'components' => [
         'request' => [
+            'enableCookieValidation' => false,
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
             ]
@@ -35,6 +36,8 @@ $config = [
         ], 
         'user' => [
             'identityClass' => 'app\models\Player',
+            'enableSession' => false,
+            'loginUrl' => null,
         ],
         'db' => $db,
     ],
