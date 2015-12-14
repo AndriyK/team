@@ -74,6 +74,11 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return static::findOne($id);
     }
 
+    public static function findByMail($email)
+    {
+        return static::findOne(['email' => $email]);
+    }
+
     public function getId()
     {
         return $this->id;
@@ -90,11 +95,19 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     }
 
     public function beforeSave($insert) {
-        if(isset($this->password)){
-            $this->password = Yii::$app->getSecurity()->generatePasswordHash($this->password);
-        }
+        $this->password = Yii::$app->security->generatePasswordHash($this->password);
         $this->token = Yii::$app->security->generateRandomString();
-
         return parent::beforeSave($insert);
+    }
+
+    /**
+     * Validates password
+     *
+     * @param  string  $password password to validate
+     * @return boolean if password provided is valid for current user
+     */
+    public function validatePassword($password)
+    {
+        return Yii::$app->security->validatePassword($password, $this->password);
     }
 }
