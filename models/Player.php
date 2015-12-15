@@ -58,7 +58,13 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function fields()
     {
-        return ['id', 'email', 'name', 'token'];
+        return ['id', 'email', 'name', 'teams'];
+    }
+
+    public function getTeams()
+    {
+        return $this->hasMany(Team::className(), ['id' => 'team_id'])
+            ->viaTable('team_has_player', ['player_id' => 'id']);
     }
 
     /**

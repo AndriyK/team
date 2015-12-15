@@ -32,7 +32,7 @@ class AuthController extends Controller
 
         if ($model->validate()) {
             $user = $model->getUser();
-            return $user->token;
+            return ['token' => $user->token];
         } else {
             Yii::$app->response->statusCode = 401;
             return ['errors' => $this->filterErrors($model->getErrors())];
