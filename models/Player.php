@@ -58,7 +58,12 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function fields()
     {
-        return ['id', 'email', 'name', 'teams'];
+        return ['id', 'email', 'name'];
+    }
+
+    public function extraFields()
+    {
+        return ['teams'];
     }
 
     public function getTeams()

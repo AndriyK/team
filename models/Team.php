@@ -54,6 +54,23 @@ class Team extends \yii\db\ActiveRecord
 
     public function fields()
     {
-        return ['id', 'sport', 'name', /*'players'*/];
+        return ['id', 'sport', 'name'];
+    }
+
+    public function extraFields()
+    {
+        return ['players'];
+    }
+
+    public function afterSave($insert, $changedAttrs)
+    {
+        parent::afterSave($insert, $changedAttrs);
+        $this->link('players', Yii::$app->user->getIdentity(false), array('is_capitan'=>1));
+    }
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+        $this->unlink('players', Yii::$app->user->getIdentity(false), true);
     }
 }
