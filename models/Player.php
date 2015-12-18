@@ -18,6 +18,8 @@ use Yii;
 class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 {
     public $password_repeat;
+    public $is_capitan;
+
 
     /**
      * @inheritdoc
@@ -58,7 +60,7 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
      */
     public function fields()
     {
-        return ['id', 'email', 'name'];
+        return ['id', 'email', 'name', 'is_capitan'];
     }
 
     public function extraFields()
@@ -69,7 +71,8 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function getTeams()
     {
         return $this->hasMany(Team::className(), ['id' => 'team_id'])
-            ->viaTable('team_has_player', ['player_id' => 'id']);
+            ->viaTable('team_has_player', ['player_id' => 'id'])
+            ->select('*, (SELECT is_capitan FROM team_has_player WHERE player_id='.$this->id.' AND team_id=teams.id LIMIT 1) as is_capitan');
     }
 
     /**
@@ -120,5 +123,12 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function validatePassword($password)
     {
         return Yii::$app->security->validatePassword($password, $this->password);
+    }
+
+    public function toArray(array $fields = [], array $expand = [], $recursive = true)
+    {
+        return array_filter(parent::toArray($fields,$expand,$recursive), function($val){
+            return is_null($val) ? false : true;
+        });
     }
 }
