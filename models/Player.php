@@ -15,11 +15,20 @@ use Yii;
  * @property string $name
  * @property string $created_at
  */
-class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
+class Player extends AppActiveRecord implements \yii\web\IdentityInterface
 {
+    /**
+     * Holds passed password_repeat value
+     * @var String
+     */
     public $password_repeat;
-    public $is_capitan;
 
+    /**
+     * For correct view of many-to-many relation with team model
+     * maps "team_has_player.is_capitan" DB value
+     * @var int
+     */
+    public $is_capitan;
 
     /**
      * @inheritdoc
@@ -45,29 +54,23 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'email' => 'Email',
-            'password' => 'Password',
-            'name' => 'Name',
-        ];
-    }
-
-    /**
-     * @inheritdoc
-     */
     public function fields()
     {
         return ['id', 'email', 'name', 'is_capitan'];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function extraFields()
     {
         return ['teams'];
     }
 
+    /**
+     * Defines many-to-many relation with team model via table team_has_player
+     * @return list of teams to which belongs player
+     */
     public function getTeams()
     {
         return $this->hasMany(Team::className(), ['id' => 'team_id'])
@@ -83,31 +86,59 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return static::findOne(['token' => $token]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public static function findIdentity($id)
     {
         return static::findOne($id);
     }
 
+    /**
+     * Search player entry for passed mail
+     * @param $email
+     * @return null|static
+     */
     public static function findByMail($email)
     {
+        if(!$email){
+            return null;
+        }
+
         return static::findOne(['email' => $email]);
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getId()
     {
         return $this->id;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function getAuthKey()
     {
         return '';
     }
 
+    /**
+     * @inheritdoc
+     */
     public function validateAuthKey($authKey)
     {
         return '';
     }
 
+    /**
+     * Generates password hash and security tokens
+     * @param bool $insert
+     * @return bool
+     * @throws \yii\base\Exception
+     * @throws \yii\base\InvalidConfigException
+     */
     public function beforeSave($insert) {
         $this->password = Yii::$app->security->generatePasswordHash($this->password);
         $this->token = Yii::$app->security->generateRandomString();
@@ -116,19 +147,11 @@ class Player extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
 
     /**
      * Validates password
-     *
      * @param  string  $password password to validate
      * @return boolean if password provided is valid for current user
      */
     public function validatePassword($password)
     {
         return Yii::$app->security->validatePassword($password, $this->password);
-    }
-
-    public function toArray(array $fields = [], array $expand = [], $recursive = true)
-    {
-        return array_filter(parent::toArray($fields,$expand,$recursive), function($val){
-            return is_null($val) ? false : true;
-        });
     }
 }

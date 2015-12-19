@@ -11,9 +11,27 @@ use Yii;
  * @property string $sport
  * @property string $name
  */
-class Team extends \yii\db\ActiveRecord
+class Team extends AppActiveRecord
 {
+    /**
+     * Holds passed join_player value for adding player to the team
+     * (new entry to team_has_player table)
+     * @var String
+     */
     public $join_player;
+
+    /**
+     * Holds passed remove_player value for removing player from the team
+     * (remove entry from team_has_player table)
+     * @var String
+     */
+    public $remove_player;
+
+    /**
+     * Helper atribute for correct view of many-to-many relation with player model
+     * (shows which player is a capitan of a team)
+     * @var int
+     */
     public $is_capitan;
 
     /**
@@ -35,23 +53,16 @@ class Team extends \yii\db\ActiveRecord
             [['name'], 'required'],
             [['name'], 'string', 'max' => 50],
             [['sport', 'name'], 'unique', 'targetAttribute' => ['sport', 'name'], 'message' => 'The combination of Sport and Name has already been taken.'],
-            [['join_player'], 'safe'],
-            [['join_player'], 'email'],
+            [['join_player','remove_player'], 'safe'],
+            [['join_player','remove_player'], 'email'],
         ];
     }
+
 
     /**
-     * @inheritdoc
+     * Defines many-to-many relation with player model via table team_has_player
+     * @return list of team's players
      */
-    public function attributeLabels()
-    {
-        return [
-            'id' => 'ID',
-            'sport' => 'Sport',
-            'name' => 'Name',
-        ];
-    }
-
     public function getPlayers()
     {
         return $this->hasMany(Player::className(), ['id' => 'player_id'])
@@ -59,36 +70,70 @@ class Team extends \yii\db\ActiveRecord
             ->select('*, (SELECT is_capitan FROM team_has_player WHERE team_id='.$this->id.' AND player_id=players.id LIMIT 1) as is_capitan');
     }
 
+    /**
+     * @inheritdoc
+     */
     public function fields()
     {
         return ['id', 'sport', 'name', 'is_capitan'];
     }
 
+    /**
+     * @inheritdoc
+     */
     public function extraFields()
     {
         return ['players'];
     }
 
+    /**
+     * Manage adding/removing entries to team_has_player table
+     * @param bool $insert
+     * @param array $changedAttrs
+     */
     public function afterSave($insert, $changedAttrs)
     {
         parent::afterSave($insert, $changedAttrs);
-        if($this->getIsNewRecord()) {
-            $this->link('players', Yii::$app->user->getIdentity(false), array('is_capitan' => 1));
-        } elseif(!empty($this->join_player) && ($player = Player::findByMail($this->join_player))){
+        $this->manageTeamOwner();
+        $this->manageTeamMembers();
+    }
+
+    /**
+     * When new team added, link it with player and mark it as team capitan
+     */
+    private function manageTeamOwner()
+    {
+        if( !$this->getIsNewRecord() ) {
+            return;
+        }
+
+        $this->link('players', Yii::$app->user->getIdentity(false), array('is_capitan' => 1));
+    }
+
+    /**
+     * When team is updated, link/unlink players with team
+     */
+    private function manageTeamMembers()
+    {
+        if( $this->getIsNewRecord() ) {
+            return;
+        }
+
+        if( $player = Player::findByMail($this->join_player) ){
             $this->link('players', $player);
+        }
+
+        if( $player = Player::findByMail($this->remove_player) ){
+            $this->unlink('players', $player, true);
         }
     }
 
+    /**
+     * Unlink all players when team is deleted
+     */
     public function afterDelete()
     {
         parent::afterDelete();
-        $this->unlink('players', Yii::$app->user->getIdentity(false), true);
-    }
-
-    public function toArray(array $fields = [], array $expand = [], $recursive = true)
-    {
-        return array_filter(parent::toArray($fields,$expand,$recursive), function($val){
-            return is_null($val) ? false : true;
-        });
+        $this->unlinkAll('players', true);
     }
 }
