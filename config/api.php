@@ -32,7 +32,11 @@ $config = [
             'showScriptName' => true,
             'rules' => [
                 ['class' => 'yii\rest\UrlRule', 'controller' => ['v1/player']],
-                ['class' => 'yii\rest\UrlRule', 'controller' => ['v1/team']],
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => ['v1/team'],
+                    'extraPatterns' => ['GET search' => 'search']
+                ],
                 'POST v1/auth/login' => 'v1/auth/login',
 
             ],

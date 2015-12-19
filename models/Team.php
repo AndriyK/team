@@ -35,6 +35,13 @@ class Team extends AppActiveRecord
     public $is_capitan;
 
     /**
+     * Flag that indicated when new record was inserted
+     * (is populated in beforeSave method)
+     * @var bool
+     */
+    private $isNewRecord = false;
+    
+    /**
      * @inheritdoc
      */
     public static function tableName()
@@ -87,15 +94,24 @@ class Team extends AppActiveRecord
     }
 
     /**
+     * @inheritdoc
+     */
+    public function beforeSave($insert)
+    {
+        $this->isNewRecord = $this->getIsNewRecord();
+        return parent::beforeSave($insert);
+    }
+    
+    /**
      * Manage adding/removing entries to team_has_player table
      * @param bool $insert
      * @param array $changedAttrs
      */
     public function afterSave($insert, $changedAttrs)
     {
-        parent::afterSave($insert, $changedAttrs);
         $this->manageTeamOwner();
         $this->manageTeamMembers();
+        return parent::afterSave($insert, $changedAttrs);
     }
 
     /**
@@ -103,7 +119,7 @@ class Team extends AppActiveRecord
      */
     private function manageTeamOwner()
     {
-        if( !$this->getIsNewRecord() ) {
+        if( !$this->isNewRecord ) {
             return;
         }
 
@@ -115,7 +131,7 @@ class Team extends AppActiveRecord
      */
     private function manageTeamMembers()
     {
-        if( $this->getIsNewRecord() ) {
+        if($this->isNewRecord) {
             return;
         }
 
