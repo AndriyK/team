@@ -60,7 +60,6 @@ class Team extends AppActiveRecord
             [['name'], 'required'],
             [['name'], 'string', 'max' => 50],
             [['sport', 'name'], 'unique', 'targetAttribute' => ['sport', 'name'], 'message' => 'The combination of Sport and Name has already been taken.'],
-            [['join_player','remove_player'], 'safe'],
             [['join_player','remove_player'], 'email'],
         ];
     }
@@ -78,6 +77,15 @@ class Team extends AppActiveRecord
     }
 
     /**
+     * Defines one-to-many relation with games table
+     * @return \yii\db\ActiveQuery
+     */
+    public function getGames()
+    {
+        return $this->hasMany(Game::className(), ['team_id' => 'id']);
+    }
+
+    /**
      * @inheritdoc
      */
     public function fields()
@@ -90,7 +98,7 @@ class Team extends AppActiveRecord
      */
     public function extraFields()
     {
-        return ['players'];
+        return ['players', 'games'];
     }
 
     /**
@@ -151,5 +159,6 @@ class Team extends AppActiveRecord
     {
         parent::afterDelete();
         $this->unlinkAll('players', true);
+        $this->unlinkAll('games', true);
     }
 }

@@ -31,6 +31,13 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
     public $is_capitan;
 
     /**
+     * Helper attribute for correct view of many-to-many relation with player model
+     * (shows which player reported his presence on the game)
+     * @var int
+     */
+    public $presence;
+
+    /**
      * @inheritdoc
      */
     public static function tableName()
@@ -56,7 +63,7 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
      */
     public function fields()
     {
-        return ['id', 'email', 'name', 'is_capitan'];
+        return ['id', 'email', 'name', 'is_capitan', 'presence'];
     }
 
     /**
@@ -64,7 +71,7 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
      */
     public function extraFields()
     {
-        return ['teams'];
+        return ['teams', 'games'];
     }
 
     /**
@@ -76,6 +83,17 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
         return $this->hasMany(Team::className(), ['id' => 'team_id'])
             ->viaTable('team_has_player', ['player_id' => 'id'])
             ->select('*, (SELECT is_capitan FROM team_has_player WHERE player_id='.$this->id.' AND team_id=teams.id LIMIT 1) as is_capitan');
+    }
+
+    /**
+     * Defines many-to-many relation with game model via table game_has_player
+     * @return list of games where user has marked his presence
+     */
+    public function getGames()
+    {
+        return $this->hasMany(Game::className(), ['id' => 'game_id'])
+            ->viaTable('game_has_player', ['player_id' => 'id'])
+            ->select('*, (SELECT presence FROM game_has_player WHERE player_id='.$this->id.' AND game_id=games.id LIMIT 1) as presence');
     }
 
     /**
@@ -91,6 +109,10 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentity($id)
     {
+        if(!$id){
+            return null;
+        }
+
         return static::findOne($id);
     }
 

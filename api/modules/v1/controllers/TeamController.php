@@ -58,7 +58,9 @@ class TeamController extends ActiveController
 
     private function performNameSearch($team_name)
     {
-        return \app\models\Team::findAll(['name' => $team_name]);
+        return \app\models\Team::find()
+                ->where(['like', 'name', $team_name])
+                ->all();
     }
 
     private function performPlayerMailSearch($player_mail)
