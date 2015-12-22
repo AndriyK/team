@@ -3,6 +3,9 @@
 namespace app\models;
 
 use Yii;
+use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\Signer\Hmac\Sha256;
+
 
 /**
  * This is the model class for table "players".
@@ -17,6 +20,8 @@ use Yii;
  */
 class Player extends AppActiveRecord implements \yii\web\IdentityInterface
 {
+    const CREATE_SCENARIO = 'create_player';
+
     /**
      * Holds passed password_repeat value
      * @var String
@@ -38,6 +43,13 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
     public $presence;
 
     /**
+     * Flag that indicated when new record was inserted
+     * (is populated in beforeSave method)
+     * @var bool
+     */
+    private $isNewRecord = false;
+
+    /**
      * @inheritdoc
      */
     public static function tableName()
@@ -52,6 +64,7 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
     {
         return [
             [['email', 'password', 'password_repeat', 'name'], 'required'],
+            [['password_repeat'], 'required', 'on' => self::CREATE_SCENARIO],
             [['email', 'password', 'name'], 'string', 'max' => 50],
             ['password', 'compare'],
             [['email'], 'unique'],
@@ -63,6 +76,10 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
      */
     public function fields()
     {
+        if($this->scenario == self::CREATE_SCENARIO){
+            return ['token'];
+        }
+
         return ['id', 'email', 'name', 'is_capitan', 'presence'];
     }
 
@@ -162,9 +179,66 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
      * @throws \yii\base\InvalidConfigException
      */
     public function beforeSave($insert) {
-        $this->password = Yii::$app->security->generatePasswordHash($this->password);
-        $this->token = Yii::$app->security->generateRandomString();
+        $this->isNewRecord = $this->getIsNewRecord();
+
+        if($this->isNewRecord) {
+            $this->password = Yii::$app->security->generatePasswordHash($this->password);
+        }
         return parent::beforeSave($insert);
+    }
+
+    /**
+     * Manage adding/removing entries to team_has_player table
+     * @param bool $insert
+     * @param array $changedAttrs
+     */
+    public function afterSave($insert, $changedAttrs)
+    {
+        if( $this->isNewRecord ) {
+            $this->updateSecurityToken();
+        }
+        return parent::afterSave($insert, $changedAttrs);
+    }
+
+    /**
+     * Method updates model table with new security token
+     * @throws \yii\db\Exception
+     */
+    private function updateSecurityToken()
+    {
+        $this->token = (string) $this->getSecurityToken();
+        Yii::$app->db->createCommand()
+            ->update(self::tableName(), ['token' => $this->token], "id = $this->id")
+            ->execute();
+    }
+
+    /**
+     * Generates new security token
+     * @return \Lcobucci\JWT\Token
+     */
+    private function getSecurityToken()
+    {
+        $signer = new Sha256();
+
+        $token = (new Builder())->setIssuer('http://localhost') // Configures the issuer (iss claim)
+            ->setAudience('http://localhost') // Configures the audience (aud claim)
+            ->setIssuedAt(time()) // Configures the time that the token was issue (iat claim)
+            //->setNotBefore(time() + 60) // Configures the time that the token can be used (nbf claim)
+            ->setExpiration(time() + 3600) // Configures the expiration time of the token (exp claim)
+            ->set('uid', $this->id) // Configures a new claim, called "uid"
+            ->set('mail', $this->email)
+            ->sign($signer, 'tst')
+            ->getToken(); // Retrieves the generated token
+
+        return $token;
+    }
+
+    /**
+     * Wrapper for update security token method, is called when user is logged in
+     */
+    public function refreshToken()
+    {
+        $this->updateSecurityToken();
     }
 
     /**

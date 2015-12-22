@@ -30,7 +30,7 @@ class AuthController extends Controller
         $data = Yii::$app->request->post();
         $model->load($data,'');
 
-        if ($model->validate()) {
+        if ($model->login()) {
             $user = $model->getUser();
             return ['token' => $user->token];
         } else {

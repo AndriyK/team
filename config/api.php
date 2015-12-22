@@ -31,15 +31,28 @@ $config = [
             'enableStrictParsing' => true,
             'showScriptName' => true,
             'rules' => [
-                ['class' => 'yii\rest\UrlRule', 'controller' => ['v1/player']],
+                // /players
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => ['v1/player'],
+                    'except' => ['delete', 'update']
+                ],
+
+                // /teams
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => ['v1/team'],
                     'extraPatterns' => ['GET search' => 'search']
                 ],
-                ['class' => 'yii\rest\UrlRule', 'controller' => ['v1/game']],
-                'POST v1/auth/login' => 'v1/auth/login',
 
+                // /games
+                [
+                    'class' => 'yii\rest\UrlRule',
+                    'controller' => ['v1/game']
+                ],
+
+                // /auth/login
+                'POST v1/auth/login' => 'v1/auth/login',
             ],
         ], 
         'user' => [

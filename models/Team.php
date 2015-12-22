@@ -90,7 +90,7 @@ class Team extends AppActiveRecord
      */
     public function fields()
     {
-        return ['id', 'sport', 'name', 'is_capitan'];
+        return ['id', 'sport', 'name', 'is_capitan', 'players'];
     }
 
     /**
@@ -98,7 +98,7 @@ class Team extends AppActiveRecord
      */
     public function extraFields()
     {
-        return ['players', 'games'];
+        return [/*'players', */'games'];
     }
 
     /**

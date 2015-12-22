@@ -4,18 +4,21 @@ namespace app\api\modules\v1\controllers;
 use yii\rest\ActiveController;
 use yii\filters\ContentNegotiator;
 use yii\web\Response;
+use yii\filters\auth\HttpBearerAuth;
  
 class PlayerController extends ActiveController
 {
     public $modelClass = 'app\models\Player';
 
+    public $createScenario = \app\models\Player::CREATE_SCENARIO;
+
     public function behaviors()
     {
         $behaviors = parent::behaviors();
-        /*$behaviors['authenticator'] = [
+        $behaviors['authenticator'] = [
             'class' => HttpBearerAuth::className(),
-            'only' => ['dashboard'],
-        ];*/
+            'only' => ['view', 'index'],
+        ];
 
         $behaviors['contentNegotiator'] = [
             'class' => ContentNegotiator::className(),
