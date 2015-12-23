@@ -82,7 +82,8 @@ class Team extends AppActiveRecord
      */
     public function getGames()
     {
-        return $this->hasMany(Game::className(), ['team_id' => 'id']);
+        return $this->hasMany(Game::className(), ['team_id' => 'id'])
+                    ->andOnCondition(['>', 'datetime', date('Y-m-d H:m:s')]);
     }
 
     /**
