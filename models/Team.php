@@ -56,7 +56,7 @@ class Team extends AppActiveRecord
     {
         return [
             [['sport'], 'string'],
-            [['sport'], 'in', 'range' => ['football', 'backetball', 'voleyball','']],
+            [['sport'], 'in', 'range' => ['football', 'basketball', 'voleyball','']],
             [['name'], 'required'],
             [['name'], 'string', 'max' => 50],
             [['sport', 'name'], 'unique', 'targetAttribute' => ['sport', 'name'], 'message' => 'The combination of Sport and Name has already been taken.'],
@@ -159,6 +159,12 @@ class Team extends AppActiveRecord
     {
         parent::afterDelete();
         $this->unlinkAll('players', true);
-        $this->unlinkAll('games', true);
+        //$this->unlinkAll('games', true);
+        $sql = "DELETE FROM `g`,`ghp`
+                USING `games` `g` INNER JOIN `game_has_player` `ghp`
+                ON `g`.`id` = `ghp`.`game_id`
+                WHERE `g`.`team_id` = {$this->id}";
+        Yii::$app->db->createCommand($sql)
+            ->execute();
     }
 }
