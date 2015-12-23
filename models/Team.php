@@ -98,7 +98,7 @@ class Team extends AppActiveRecord
      */
     public function extraFields()
     {
-        return [/*'players', */'games'];
+        return ['games'];
     }
 
     /**
@@ -150,21 +150,5 @@ class Team extends AppActiveRecord
         if( $player = Player::findByMail($this->remove_player) ){
             $this->unlink('players', $player, true);
         }
-    }
-
-    /**
-     * Unlink all players when team is deleted
-     */
-    public function afterDelete()
-    {
-        parent::afterDelete();
-        $this->unlinkAll('players', true);
-        //$this->unlinkAll('games', true);
-        $sql = "DELETE FROM `g`,`ghp`
-                USING `games` `g` INNER JOIN `game_has_player` `ghp`
-                ON `g`.`id` = `ghp`.`game_id`
-                WHERE `g`.`team_id` = {$this->id}";
-        Yii::$app->db->createCommand($sql)
-            ->execute();
     }
 }

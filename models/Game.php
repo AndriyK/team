@@ -105,15 +105,6 @@ class Game extends AppActiveRecord
     }
 
     /**
-     * Unlink all players when game is deleted
-     */
-    public function afterDelete()
-    {
-        parent::afterDelete();
-        $this->unlinkAll('players', true);
-    }
-
-    /**
      * @inheritdoc
      */
     public function beforeSave($insert)
