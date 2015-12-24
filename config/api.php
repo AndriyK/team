@@ -53,6 +53,9 @@ $config = [
 
                 // /auth/login
                 'POST v1/auth/login' => 'v1/auth/login',
+
+                // /dashboard/:player_id
+                "GET v1/dashboard/<player_id:\d+>" => "v1/dashboard/index",
             ],
         ], 
         'user' => [
