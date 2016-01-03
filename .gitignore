@@ -1,7 +1,7 @@
 # phpstorm project files
 .idea
 runtime
-tests
+tests/codecept.phar
 
 # netbeans project files
 nbproject
@@ -27,3 +27,5 @@ composer.phar
 phpunit.phar
 # local phpunit config
 /phpunit.xml
+
+tests/_output/*

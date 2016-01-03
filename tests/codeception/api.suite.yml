@@ -1,0 +1,20 @@
+class_name: ApiTester
+modules:
+    enabled:
+      - Yii2
+      - Db
+      - REST
+    config:
+        Yii2:
+            configFile: 'codeception/config/api.php'
+        Db:
+            dsn: 'mysql:host=localhost;dbname=team_test'
+            user: 'root'
+            password: 'root'
+            dump: 'codeception/_data/team_db.sql'
+            populate: true
+            cleanup: true
+        REST:
+          url: 'http://localhost/team/api/index_test.php/v1'
+          depends: PhpBrowser
+          part: Json
