@@ -58,6 +58,10 @@ class TeamController extends ActiveController
 
     private function performNameSearch($team_name)
     {
+        if(empty($team_name)) {
+            return array();
+        }
+
         return \app\models\Team::find()
                 ->where(['like', 'name', $team_name])
                 ->all();
@@ -65,6 +69,10 @@ class TeamController extends ActiveController
 
     private function performPlayerMailSearch($player_mail)
     {
+        if(empty($player_mail)) {
+            return array();
+        }
+
         if( $player = \app\models\Player::findByMail($player_mail) ){
             return $player->teams;
         }
