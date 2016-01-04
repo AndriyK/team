@@ -35,20 +35,22 @@ $config = [
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => ['v1/player'],
-                    'except' => ['delete', 'update']
+                    'only' => ['create', 'view']
                 ],
 
                 // /teams
                 [
                     'class' => 'yii\rest\UrlRule',
                     'controller' => ['v1/team'],
+                    'except' => ['index'],
                     'extraPatterns' => ['GET search' => 'search']
                 ],
 
                 // /games
                 [
                     'class' => 'yii\rest\UrlRule',
-                    'controller' => ['v1/game']
+                    'controller' => ['v1/game'],
+                    'except' => ['index', 'view']
                 ],
 
                 // /auth/login

@@ -1,6 +1,6 @@
 <?php 
 $I = new ApiTester($scenario);
-$I->wantTo('check that teams resource works as expected');
+$I->wantTo('check teams resource');
 
 $I->sendGET('/players/33?expand=teams');
 $I->seeResponseCodeIs(401);
@@ -66,5 +66,12 @@ $I->seeResponseIsJson();
 $I->seeResponseContains('teams');
 $teams = $I->grabDataFromResponseByJsonPath('$.teams[0]');
 \PHPUnit_Framework_Assert::assertEquals(1, count($teams));
+
+
+// check that all other routes are disabled
+// index
+$I->sendGET('/teams');
+$I->seeResponseCodeIs(405);
+
 
 

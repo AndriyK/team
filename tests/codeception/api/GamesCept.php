@@ -59,3 +59,11 @@ $I->seeResponseIsJson();
 $I->seeResponseContains('games');
 $games = $I->grabDataFromResponseByJsonPath('$.games')[0];
 \PHPUnit_Framework_Assert::assertEquals(2, count($games));
+
+// check that all other routes are disabled
+// index
+$I->sendGET('/games');
+$I->seeResponseCodeIs(405);
+//view
+$I->sendGET('/games/2');
+$I->seeResponseCodeIs(405);

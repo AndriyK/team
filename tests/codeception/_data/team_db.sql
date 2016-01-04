@@ -37,6 +37,11 @@ CREATE TABLE IF NOT EXISTS `game_has_player` (
   PRIMARY KEY (`game_id`,`player_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
+INSERT INTO `team_test`.`game_has_player` (`game_id`, `player_id`, `presence`) VALUES
+(1, '33', 1),
+(2, '33', 0);
+
+
 -- --------------------------------------------------------
 
 --
