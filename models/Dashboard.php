@@ -115,7 +115,7 @@ class Dashboard extends Model
         $gamePlayers = $game->players;
 
         $stat = [];
-        $stat['date'] = str_replace(' ', 'T', $game->datetime);
+        $stat['date'] = $game->datetime;
         $stat['current_player_status'] = $this->getCurrentPlayerPresenceStatus($gamePlayers);
         $stat['team'] = [
             'id' => $gameTeam->id,
