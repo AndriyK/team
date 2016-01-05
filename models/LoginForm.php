@@ -12,7 +12,7 @@ class LoginForm extends Model
 {
     public $email;
     public $password;
-    public $rememberMe = true;
+    public $rememberMe;
 
     private $_user = false;
 
@@ -56,12 +56,11 @@ class LoginForm extends Model
     public function login()
     {
         if ($this->validate()) {
-            // regenerate token
             $user = $this->getUser();
-            $user->refreshToken();
+            $user->addSecurityToken($this->rememberMe ? \Yii::$app->params['securityToken.weekExpire'] : 0);
             return true;
-            //return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
         }
+
         return false;
     }
 

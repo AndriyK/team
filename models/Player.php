@@ -5,6 +5,7 @@ namespace app\models;
 use Yii;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Signer\Hmac\Sha256;
+use Lcobucci\JWT\Parser;
 
 
 /**
@@ -118,7 +119,31 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        return static::findOne(['token' => $token]);
+        if(self::isValidToken($token)){
+            return static::findOne(['token' => $token]);
+        }
+        return false;
+    }
+
+
+    /**
+     * Check if provided token is valid (good signature and not expired)
+     * @param $token
+     * @return bool
+     */
+    public static function isValidToken($security_token)
+    {
+        $signer = new Sha256();
+        $token = (new Parser())->parse((string) $security_token);
+        if( !$token->verify($signer, \Yii::$app->params['securityToken.signStr']) ){
+            return false;
+        }
+
+        if(time() > $token->getClaim('exp')){
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -195,50 +220,57 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
     public function afterSave($insert, $changedAttrs)
     {
         if( $this->isNewRecord ) {
-            $this->updateSecurityToken();
+            $this->addSecurityToken();
         }
         return parent::afterSave($insert, $changedAttrs);
     }
 
     /**
      * Method updates model table with new security token
+     * @param $expire integer - amount of seconds token will be considered as valid
      * @throws \yii\db\Exception
      */
-    private function updateSecurityToken()
+    public function addSecurityToken($expire = 0)
     {
-        $this->token = (string) $this->getSecurityToken();
+        $expiration = $this->getExpirationTime($expire);
+        $this->token = (string) $this->getSecurityToken($expiration);
+
         Yii::$app->db->createCommand()
             ->update(self::tableName(), ['token' => $this->token], "id = $this->id")
             ->execute();
     }
 
     /**
-     * Generates new security token
-     * @return \Lcobucci\JWT\Token
+     * Return time before which token would be considered valid
+     * @param $expire - amount of seconds token will be valid
+     * @return int
      */
-    private function getSecurityToken()
+    private function getExpirationTime($expire)
     {
-        $signer = new Sha256();
-
-        $token = (new Builder())->setIssuer('http://localhost') // Configures the issuer (iss claim)
-            ->setAudience('http://localhost') // Configures the audience (aud claim)
-            ->setIssuedAt(time()) // Configures the time that the token was issue (iat claim)
-            //->setNotBefore(time() + 60) // Configures the time that the token can be used (nbf claim)
-            ->setExpiration(time() + 3600) // Configures the expiration time of the token (exp claim)
-            ->set('uid', $this->id) // Configures a new claim, called "uid"
-            ->set('mail', $this->email)
-            ->sign($signer, 'tst')
-            ->getToken(); // Retrieves the generated token
-
-        return $token;
+        $expire_interval = (is_int($expire) and $expire>0) ? $expire : \Yii::$app->params['securityToken.defaultExpire'];
+        return time() + $expire_interval;
     }
 
     /**
-     * Wrapper for update security token method, is called when user is logged in
+     * Generates new security token
+     * $expiration - time before which token will be valid
+     * @return \Lcobucci\JWT\Token
      */
-    public function refreshToken()
+    private function getSecurityToken($expiration)
     {
-        $this->updateSecurityToken();
+        $signer = new Sha256();
+
+        $token = (new Builder())->setIssuer(\Yii::$app->params['securityToken.host']) // Configures the issuer (iss claim)
+            ->setAudience(\Yii::$app->params['securityToken.host']) // Configures the audience (aud claim)
+            ->setIssuedAt(time()) // Configures the time that the token was issue (iat claim)
+            //->setNotBefore(time() + 60) // Configures the time that the token can be used (nbf claim)
+            ->setExpiration($expiration) // Configures the expiration time of the token (exp claim)
+            ->set('uid', $this->id) // Configures a new claim, called "uid"
+            ->set('mail', $this->email)
+            ->sign($signer, \Yii::$app->params['securityToken.signStr'])
+            ->getToken(); // Retrieves the generated token
+
+        return $token;
     }
 
     /**
