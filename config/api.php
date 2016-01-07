@@ -14,7 +14,10 @@ $config = [
             'enableCookieValidation' => false,
             'parsers' => [
                 'application/json' => 'yii\web\JsonParser',
-            ]
+            ],
+        ],
+        'response' => [
+            'on beforeSend' => ['app\models\Player', 'addTokenHeader']
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,

@@ -22,5 +22,8 @@ return [
         'urlManager' => [
             'showScriptName' => true,
         ],
+        'response' => [
+            'on beforeSend' => function($event){},
+        ]
     ],
 ];

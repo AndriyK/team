@@ -27,7 +27,7 @@ $games = $I->grabDataFromResponseByJsonPath('$.games')[0];
 \PHPUnit_Framework_Assert::assertEquals(0, count($games));
 
 // create game
-$I->sendPOST('/games', ['team_id'=> 26, 'datetime' => "2016-01-05 10:00:00", 'location' => "home", 'title' => "important game"]);
+$I->sendPOST('/games', ['team_id'=> 26, 'datetime' => date("Y-m-d H:i:s"), 'location' => "home", 'title' => "important game"]);
 $I->seeResponseCodeIs(201);
 $I->seeResponseIsJson();
 $I->seeResponseContains('important game');

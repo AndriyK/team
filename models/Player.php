@@ -23,6 +23,8 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
 {
     const CREATE_SCENARIO = 'create_player';
 
+    protected static $decryptedTocken = null;
+
     /**
      * Holds passed password_repeat value
      * @var String
@@ -120,9 +122,23 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
     public static function findIdentityByAccessToken($token, $type = null)
     {
         if(self::isValidToken($token)){
-            return static::findOne(['token' => $token]);
+            if($player = static::findOne(['token' => $token])){
+                $player->checkTokenProlongation();
+            }
+            return $player;
         }
         return false;
+    }
+
+
+    public function checkTokenProlongation()
+    {
+        $token = self::parseSecurityToken($this->token);
+
+        $till_expire = $token->getClaim('exp') - time();
+        if($till_expire > 0 and $till_expire < \Yii::$app->params['securityToken.prolongInterval'] ){
+            $this->addSecurityToken(); // prolong
+        }
     }
 
 
@@ -134,7 +150,7 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
     public static function isValidToken($security_token)
     {
         $signer = new Sha256();
-        $token = (new Parser())->parse((string) $security_token);
+        $token = self::parseSecurityToken($security_token);
         if( !$token->verify($signer, \Yii::$app->params['securityToken.signStr']) ){
             return false;
         }
@@ -144,6 +160,14 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
         }
 
         return true;
+    }
+
+    protected static function parseSecurityToken($token){
+        if(is_null(self::$decryptedTocken)){
+            self::$decryptedTocken = (new Parser())->parse((string) $token);
+        }
+
+        return self::$decryptedTocken;
     }
 
     /**
@@ -281,5 +305,19 @@ class Player extends AppActiveRecord implements \yii\web\IdentityInterface
     public function validatePassword($password)
     {
         return Yii::$app->security->validatePassword($password, $this->password);
+    }
+
+    /**
+     * Adds security token to HTTP Headers (header name 'token')
+     * handler for yii\web\Response::EVENT_BEFORE_SEND event
+     */
+    public static function addTokenHeader($event)
+    {
+        $player = Yii::$app->user->getIdentity(false);
+        if ($player and $player->token) {
+            $headers = Yii::$app->response->headers;
+            $headers->add('X-Token', $player->token);
+        }
+        return $event;
     }
 }
