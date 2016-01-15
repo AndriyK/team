@@ -5,6 +5,9 @@ php:
 
 sudo: false
 
+services:
+  - mysql
+
 # cache vendor dirs
 cache:
   directories:
