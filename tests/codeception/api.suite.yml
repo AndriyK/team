@@ -10,7 +10,7 @@ modules:
         Db:
             dsn: 'mysql:host=localhost;dbname=team_test'
             user: 'root'
-            password: 'root'
+            password: ''
             dump: 'codeception/_data/team_db.sql'
             populate: true
             cleanup: true
