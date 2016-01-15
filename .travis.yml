@@ -28,7 +28,7 @@ before_script:
   - mysql -e 'CREATE DATABASE team_test;';
 script:
   - |
-    cd api
+    cd ../api
     php -S localhost:8080 > /dev/null 2>&1 &
     cd ../tests
     codecept run
