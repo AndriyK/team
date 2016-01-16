@@ -29,7 +29,7 @@ before_script:
 script:
   - |
     cd ../..
-    php -S localhost:8080 > /dev/null 2>&1 &
+    php -S localhost:80 > /dev/null 2>&1 &
     cd team/tests
     codecept run
-    curl 'http://localhost:8080/team/api/index_test.php/v1/dashboard/33'
+    curl 'http://localhost:80/team/api/index_test.php/v1/dashboard/33'
