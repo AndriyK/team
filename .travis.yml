@@ -24,6 +24,7 @@ install:
     sed -i "s/'cookieValidationKey' => ''/'cookieValidationKey' => 'testkey'/" config/web.php
     cd tests
     codecept build
+    curl 'http://localhost/'
 before_script:
   - mysql -e 'CREATE DATABASE team_test;';
 script:
