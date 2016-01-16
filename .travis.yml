@@ -29,6 +29,6 @@ before_script:
 script:
   - |
     cd ../..
-    php -S localhost:8080 > /dev/null 2>&1 &
+    php -S localhost > /dev/null 2>&1 &
     cd team/tests
     codecept run
