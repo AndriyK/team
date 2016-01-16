@@ -18,18 +18,19 @@ install:
   - export PATH="$HOME/.composer/vendor/bin:$PATH"
   - travis_retry composer install --dev --prefer-dist --no-interaction
 # codeception
-  - travis_retry composer global require "codeception/codeception=2.0.*" "codeception/specify=*" "codeception/verify=*"
+#  - travis_retry composer global require "codeception/codeception=2.0.*" "codeception/specify=*" "codeception/verify=*"
 # setup application:
   - |
     sed -i "s/'cookieValidationKey' => ''/'cookieValidationKey' => 'testkey'/" config/web.php
     cd tests
-    codecept build
+    "wget http://codeception.com/codecept.phar"
+    php ./codecept.phar build
 before_script:
   - mysql -e 'CREATE DATABASE team_test;';
 script:
   - |
     cd ../..
-    php -S localhost:80 > /dev/null 2>&1 &
+    php -S localhost:8080 > /dev/null 2>&1 &
     cd team/tests
-    codecept run
-    curl 'http://localhost:80/team/api/index_test.php/v1/dashboard/33'
+    php ./codecept.phar run
+    curl 'http://localhost:8080/team/api/index_test.php/v1/dashboard/33'
