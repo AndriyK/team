@@ -23,7 +23,7 @@ install:
   - |
     sed -i "s/'cookieValidationKey' => ''/'cookieValidationKey' => 'testkey'/" config/web.php
     cd tests
-    "wget http://codeception.com/codecept.phar"
+    wget http://codeception.com/codecept.phar
     php ./codecept.phar build
 before_script:
   - mysql -e 'CREATE DATABASE team_test;';
