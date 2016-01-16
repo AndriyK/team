@@ -28,8 +28,8 @@ before_script:
   - mysql -e 'CREATE DATABASE team_test;';
 script:
   - |
-    cd ..
+    cd ../api
     php -S localhost:8080 > /dev/null 2>&1 &
-    curl 'http://localhost/'
     cd ../tests
     codecept run
+    curl 'http://localhost/index_test.php/v1/dashboard/33'
